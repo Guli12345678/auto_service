@@ -4,6 +4,9 @@ import { PrismaModule } from "./prisma/prisma.module";
 import { UsersModule } from "./users/users.module";
 import { AuthModule } from "./auth/auth.module";
 import { AdminsModule } from './admins/admins.module';
+import { RegionModule } from './region/region.module';
+import { DistrictModule } from './district/district.module';
+import { FirmsModule } from './firms/firms.module';
 
 @Module({
   imports: [
@@ -12,6 +15,9 @@ import { AdminsModule } from './admins/admins.module';
     UsersModule,
     AuthModule,
     AdminsModule,
+    RegionModule,
+    DistrictModule,
+    FirmsModule,
   ],
   controllers: [],
   providers: [],

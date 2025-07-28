@@ -6,6 +6,10 @@ import { PrismaModule } from "../prisma/prisma.module";
 import { UsersModule } from "../users/users.module";
 import { ConfigModule } from "@nestjs/config";
 import { AdminsModule } from "../admins/admins.module";
+import {
+  AccessTokenStrategy,
+  RefreshTokenStrategyCookie,
+} from "../common/strategies";
 
 @Module({
   imports: [
@@ -16,6 +20,6 @@ import { AdminsModule } from "../admins/admins.module";
     ConfigModule.forRoot({ envFilePath: ".env", isGlobal: true }),
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, AccessTokenStrategy, RefreshTokenStrategyCookie],
 })
 export class AuthModule {}

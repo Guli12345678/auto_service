@@ -1,4 +1,8 @@
-import { Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateAdminDto, UpdateAdminDto } from "./dto";
 import * as bcrypt from "bcrypt";
@@ -9,7 +13,9 @@ export class AdminsService {
     const { full_name, email, phone, password, confirm_password, is_creator } =
       createAdminDto;
     if (password !== confirm_password) {
-      throw new Error("Passwords do not match");
+      throw new BadRequestException(
+        "Password is not the same as confirm_password"
+      );
     }
     const hashed_Password = bcrypt.hashSync(password, 7);
 
