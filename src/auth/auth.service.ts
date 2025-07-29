@@ -20,6 +20,8 @@ import { AdminResponseFields } from "../common/types/admin-response.type";
 import { CreateUserDto, SignInUserDto } from "../users/dto";
 import { UsersService } from "../users/users.service";
 import { AdminJwtPayload } from "../common/types/admin-jwt-payload.type";
+import { randomUUID } from "crypto";
+import { MailService } from "../mail/mail.service";
 
 @Injectable()
 export class AuthService {
@@ -27,7 +29,8 @@ export class AuthService {
     private readonly prismaService: PrismaService,
     private readonly jwtService: JwtService,
     private readonly adminsService: AdminsService,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private readonly mailService: MailService
   ) {}
 
   async generateTokensuser(user: User): Promise<Tokens> {
@@ -63,11 +66,37 @@ export class AuthService {
       throw new ConflictException("This user already exists");
     }
 
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-    createUserDto.password = hashedPassword;
+    const activationLink = randomUUID();
 
-    const newUser = await this.usersService.create(createUserDto);
-    return { message: "User registered successfully", user: newUser };
+    const newUser = await this.usersService.create({
+      ...createUserDto,
+      activation_link: activationLink,
+      is_active: false,
+    });
+
+    await this.mailService.sendUserConfirmation(newUser, activationLink);
+    return {
+      message:
+        "User registered successfully, please check your email for activation",
+      user: newUser,
+    };
+  }
+
+  async activateUser(activationLink: string) {
+    if (!activationLink) {
+      throw new BadRequestException("Activation link is missing");
+    }
+
+    const updatedUser = await this.prismaService.user.updateMany({
+      where: { activation_link: activationLink, is_active: false },
+      data: { is_active: true, activation_link: null }, // Activate user and clear link
+    });
+
+    if (updatedUser.count === 0) {
+      throw new BadRequestException("Invalid or expired activation link");
+    }
+
+    return { message: "User activated successfully" };
   }
   async signin(
     signInUserDto: SignInUserDto,

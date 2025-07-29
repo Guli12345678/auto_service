@@ -7,6 +7,10 @@ import { AdminsModule } from './admins/admins.module';
 import { RegionModule } from './region/region.module';
 import { DistrictModule } from './district/district.module';
 import { FirmsModule } from './firms/firms.module';
+import { ReviewsModule } from './reviews/reviews.module';
+import { CategoryModule } from './category/category.module';
+import { CarModule } from './car/car.module';
+import { CarHistoryModule } from './car_history/car_history.module';
 
 @Module({
   imports: [
@@ -18,6 +22,10 @@ import { FirmsModule } from './firms/firms.module';
     RegionModule,
     DistrictModule,
     FirmsModule,
+    ReviewsModule,
+    CategoryModule,
+    CarModule,
+    CarHistoryModule,
   ],
   controllers: [],
   providers: [],

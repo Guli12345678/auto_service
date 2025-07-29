@@ -10,12 +10,14 @@ import {
   AccessTokenStrategy,
   RefreshTokenStrategyCookie,
 } from "../common/strategies";
+import { MailModule } from "../mail/mail.module";
 
 @Module({
   imports: [
     JwtModule.register({}),
     PrismaModule,
     UsersModule,
+    MailModule,
     AdminsModule,
     ConfigModule.forRoot({ envFilePath: ".env", isGlobal: true }),
   ],

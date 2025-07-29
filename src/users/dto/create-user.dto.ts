@@ -7,4 +7,6 @@ export class CreateUserDto {
   phone?: string;
   confirm_password: string;
   role: Role;
+  is_active?: boolean;
+  activation_link?: string;
 }

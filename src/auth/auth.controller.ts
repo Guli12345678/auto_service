@@ -29,6 +29,19 @@ export class AuthController {
     return this.authService.signUpUser(createUserDto);
   }
 
+  @Get("activate/:link")
+  async activateUser(@Param("link") link: string, @Res() res: Response) {
+    try {
+      await this.authService.activateUser(link);
+      return res.redirect(process.env.FRONTEND_URL!);
+    } catch (error) {
+      console.error("Activation Error:", error);
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ message: error.message });
+    }
+  }
+
   @Post("signin")
   async signin(@Body() signInUserDto: SignInUserDto, @Res() res: Response) {
     try {

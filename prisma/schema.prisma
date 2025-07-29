@@ -21,19 +21,22 @@ enum Role {
 }
 
 model User {
-  id                   Int       @id @default(autoincrement())
-  full_name            String    @db.VarChar(100)
-  phone                String?   @unique @db.VarChar(15)
-  email                String    @unique @db.VarChar(50)
-  is_active            Boolean   @default(true)
-  is_approved          Boolean?  @default(false)
+  id                   Int          @id @default(autoincrement())
+  full_name            String       @db.VarChar(100)
+  phone                String?      @unique @db.VarChar(15)
+  email                String       @unique @db.VarChar(50)
+  is_active            Boolean      @default(false)
+  is_approved          Boolean?     @default(false)
   activation_link      String?
   hashed_password      String
   hashed_refresh_token String?
   role                 Role
-  created_at           DateTime? @default(now()) @db.Timestamp(6)
-  updated_at           DateTime? @default(now()) @updatedAt @db.Timestamp(6)
+  created_at           DateTime?    @default(now()) @db.Timestamp(6)
+  updated_at           DateTime?    @default(now()) @updatedAt @db.Timestamp(6)
   firms                Firms[]
+  Reviews              Reviews[]
+  car                  Car[]
+  carHistory           CarHistory[]
 
   @@map("users")
 }
@@ -52,8 +55,8 @@ model Admin {
 }
 
 model Region {
-  id   Int    @id @default(autoincrement())
-  name String
+  id   Int     @id @default(autoincrement())
+  name String?
 
   district District[]
   firms    Firms[]
@@ -88,7 +91,53 @@ model Firms {
 
   district District @relation(fields: [districtId], references: [id])
 
-  owner User @relation(fields: [ownerId], references: [id])
+  owner   User      @relation(fields: [ownerId], references: [id])
+  reviews Reviews[]
 
   @@map("firms")
+}
+
+model Reviews {
+  id      Int    @id @default(autoincrement())
+  rating  Int
+  comment String
+  firmId  Int
+  userId  Int
+
+  firms Firms @relation(fields: [firmId], references: [id])
+
+  users User @relation(fields: [userId], references: [id])
+}
+
+model Category {
+  id   Int    @id @default(autoincrement())
+  name String
+}
+
+model Car {
+  id              Int    @id @default(autoincrement())
+  plate_number    String
+  vin_number      String
+  model           String
+  year            Int
+  current_ownerId Int
+
+  owner      User         @relation(fields: [current_ownerId], references: [id])
+  carHistory CarHistory[]
+
+  @@map("car")
+}
+
+model CarHistory {
+  id       Int      @id @default(autoincrement())
+  carId    Int
+  ownerId  Int
+  buyed_at DateTime
+  sold_at  DateTime
+
+  cars Car @relation(fields: [carId], references: [id])
+
+  owner User @relation(fields: [ownerId], references: [id])
+
+  @@map("car_history")
 }

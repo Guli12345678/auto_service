@@ -9,7 +9,7 @@ export class RegionService {
   create(createRegionDto: CreateRegionDto) {
     return this.prismaService.region.create({
       data: {
-        nmae: createRegionDto.name,
+        name: createRegionDto.name,
       },
     });
   }
