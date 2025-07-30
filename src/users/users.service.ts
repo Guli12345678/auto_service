@@ -1,27 +1,40 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateUserDto, UpdateUserDto } from "./dto";
 import * as bcrypt from "bcrypt";
+// import { uuid } from "uuidv4"; // No longer needed as AuthService generates UUID
+
 @Injectable()
 export class UsersService {
   constructor(private readonly prismaService: PrismaService) {}
-  create(createUserDto: CreateUserDto) {
-    const { full_name, email, phone, password, confirm_password, role } =
-      createUserDto;
-    if (password !== confirm_password) {
-      throw new Error("Passwords do not match");
+  async create(createUserDto: CreateUserDto) {
+    try {
+      const { password, confirm_password, role } = createUserDto;
+      if (password !== confirm_password) {
+        throw new Error("Passwords do not match");
+      }
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const user = await this.prismaService.user.create({
+        data: {
+          full_name: createUserDto.full_name,
+          email: createUserDto.email,
+          hashed_password: hashedPassword,
+          is_active: createUserDto.is_active,
+          phone: createUserDto.phone,
+          role: createUserDto.role,
+          activation_link: createUserDto.activation_link,
+        },
+      });
+      console.log(
+        `[USERS SERVICE] User created by Prisma: ${JSON.stringify(user)}`
+      );
+      return user;
+    } catch (error) {
+      console.error("[USERS SERVICE] Registration Error:", error);
+      throw new BadRequestException(
+        "Registration failed. Please check your data and try again."
+      );
     }
-    const hashed_Password = bcrypt.hashSync(password, 7);
-
-    return this.prismaService.user.create({
-      data: {
-        full_name,
-        email,
-        phone,
-        role,
-        hashed_password: hashed_Password,
-      },
-    });
   }
 
   findAll() {

@@ -6,12 +6,9 @@ import { User } from "../../generated/prisma";
 export class MailService {
   constructor(private readonly mailerService: MailerService) {}
 
-  async sendUserConfirmation(user: User, activationLink: string) {
-    console.log(`Attempting to send activation email to: ${user.email}`);
-    console.log(`User Full Name: ${user.full_name}`);
-    console.log(`Activation Link: ${activationLink}`);
+  async sendMail(user: User, activationLink: string) {
+    const url = `${process.env.api_url}/api/auth/activate/${activationLink}`;
 
-    const url = `${process.env.api_url}/auth/activate/${activationLink}`;
     const obj = {
       username: user.full_name,
       url,
@@ -24,7 +21,7 @@ export class MailService {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Welcome to Online Menu</title>
+    <title>Welcome to Transport Service</title>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -81,7 +78,6 @@ export class MailService {
           url,
         },
       });
-      console.log(`Activation email sent successfully to ${user.email}`);
     } catch (error) {
       console.error(`Failed to send activation email to ${user.email}:`, error);
       throw new InternalServerErrorException("Failed to send activation email");

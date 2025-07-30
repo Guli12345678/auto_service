@@ -5,6 +5,7 @@ import {
   Injectable,
   NotFoundException,
   UnauthorizedException,
+  ServiceUnavailableException,
 } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { JwtService } from "@nestjs/jwt";
@@ -59,44 +60,59 @@ export class AuthService {
   }
 
   async signUpUser(createUserDto: CreateUserDto) {
-    const existing = await this.prismaService.user.findUnique({
-      where: { email: createUserDto.email },
-    });
-    if (existing) {
-      throw new ConflictException("This user already exists");
+    const condidate = await this.prismaService.user
+      .findUnique({ where: { email: createUserDto.email } })
+      .catch((err) => {
+        console.log("[SIGNUP] getUserByEmail error:", err.message);
+        return null;
+      });
+    if (condidate) {
+      throw new ConflictException("user already exists");
     }
+    try {
+      const activationLink = randomUUID();
 
-    const activationLink = randomUUID();
+      createUserDto.activation_link = activationLink;
+      createUserDto.is_active = false;
 
-    const newUser = await this.usersService.create({
-      ...createUserDto,
-      activation_link: activationLink,
-      is_active: false,
-    });
+      const newUser = await this.usersService.create(createUserDto);
 
-    await this.mailService.sendUserConfirmation(newUser, activationLink);
-    return {
-      message:
-        "User registered successfully, please check your email for activation",
-      user: newUser,
-    };
+      try {
+        await this.mailService.sendMail(newUser, activationLink);
+      } catch (error) {
+        console.log("[SIGNUP] Email error:", error.message);
+        throw new ServiceUnavailableException("email da xatolik");
+      }
+      return {
+        message: `Ro'yhatdan o'tdingiz. Akkauntni faollashtirish uchun email ni tasdiqlang!`,
+      };
+    } catch (error) {
+      console.log("[SIGNUP] Registration error:", error.message);
+      throw error;
+    }
   }
-
   async activateUser(activationLink: string) {
     if (!activationLink) {
-      throw new BadRequestException("Activation link is missing");
+      throw new UnauthorizedException("Activation link is required");
     }
-
-    const updatedUser = await this.prismaService.user.updateMany({
-      where: { activation_link: activationLink, is_active: false },
-      data: { is_active: true, activation_link: null }, // Activate user and clear link
+    const user = await this.prismaService.user.findFirst({
+      where: { activation_link: activationLink },
     });
 
-    if (updatedUser.count === 0) {
-      throw new BadRequestException("Invalid or expired activation link");
+    if (!user) {
+      throw new NotFoundException("Invalid activation link");
     }
 
-    return { message: "User activated successfully" };
+    if (user.is_active) {
+      throw new ConflictException("User account is already activated");
+    }
+
+    await this.prismaService.user.update({
+      where: { id: user.id },
+      data: { is_active: true, activation_link: null },
+    });
+
+    return { message: "User account activated successfully" };
   }
   async signin(
     signInUserDto: SignInUserDto,

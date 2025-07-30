@@ -27,7 +27,7 @@ model User {
   email                String       @unique @db.VarChar(50)
   is_active            Boolean      @default(false)
   is_approved          Boolean?     @default(false)
-  activation_link      String?
+  activation_link      String?      @unique
   hashed_password      String
   hashed_refresh_token String?
   role                 Role

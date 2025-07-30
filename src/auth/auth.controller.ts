@@ -32,8 +32,8 @@ export class AuthController {
   @Get("activate/:link")
   async activateUser(@Param("link") link: string, @Res() res: Response) {
     try {
-      await this.authService.activateUser(link);
-      return res.redirect(process.env.FRONTEND_URL!);
+      const result = await this.authService.activateUser(link);
+      return res.status(HttpStatus.OK).json(result);
     } catch (error) {
       console.error("Activation Error:", error);
       return res

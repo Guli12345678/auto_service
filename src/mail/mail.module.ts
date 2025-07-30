@@ -18,7 +18,7 @@ import { MailService } from "./mail.service";
           },
         },
         defaults: {
-          from: `"online_menu" <${config.get<string>("smtp_user")}>`,
+          from: `"transport_service" <${config.get<string>("smtp_user")}>`,
         },
         template: {
           dir: join(__dirname, "templates"),
